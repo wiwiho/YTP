@@ -2,6 +2,7 @@ from EdgeComparator import *
 from matplotlib import pyplot as plt
 from Util import *
 from ComponentManager import ComponentManager
+from Component import Component
 
 def showEdgeCompare(piece1, edge1, piece2, edge2):
     e1 = PieceManager.get(piece1).edges[edge1]
@@ -149,3 +150,73 @@ def showComponent(componentId, number=False, slot=False):
             putTextWithCircle(str(id), (gap + x - minX, gap + y - minY), image, (255, 255, 255), (0, 0, 100))
 
     showImage('component', image)
+
+def showComponent2(component, number=True, border=True):
+    gap = 50
+    
+    pixels = []
+    for x, y in component.pieces:
+        pieceId, bottomLeft = component.pieces[(x, y)]
+        piece = PieceManager.get(pieceId)
+        t1 = component.corners[(x, y)]
+        t2 = component.corners[(x + 1, y)]
+        o1 = piece.corners[bottomLeft]
+        o2 = piece.corners[(bottomLeft + 1) % 4]
+        pixels += transformPixels(piece.pixels, o1, t1, o2, t2)
+
+    dx, dy, minX, minY = getPixelsSize(pixels)
+    maxX = minX + dx - 1
+    maxY = minY + dy - 1
+
+    image = np.full((dy + 2 * gap, dx + 2 * gap, 3), 255, np.uint8)
+    for x, y, color in pixels:
+        image[gap + y - minY][gap + x - minX] = color
+
+    if border:
+        pieceId, bottomLeft = component.pieces[(0, 0)]
+        piece = PieceManager.get(pieceId)
+        t1 = component.corners[(0, 0)]
+        t2 = component.corners[(1, 0)]
+        o1 = piece.corners[bottomLeft]
+        o2 = piece.corners[(bottomLeft + 1) % 4]
+        color = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 0, 255)]
+        for i in range(0, 4):
+            edge = piece.edges[i]
+            tmp = []
+            for p in edge.originPoints:
+                p = transformPoint(p, o1, t1, o2, t2)
+                tmp.append([[p[0] - minX + gap, p[1] - minY + gap]])
+            tmp = np.array(tmp)
+            cv2.drawContours(image, tmp, -1, color[i], 2)
+
+    for tx, ty in component.corners:
+        x, y = component.corners[(tx, ty)]
+        x -= minX
+        y -= minY
+        cv2.circle(image, (gap + x, gap + y), 5, (0, 0, 0), -1)
+
+    if number:
+        for x, y in component.pieces:
+            pieceId, _ = component.pieces[(x, y)]
+            x1, y1, x2, y2 = component.getBox(x, y)
+            print(x1, y1, x2, y2)
+            mx = (x1 + x2) // 2 - minX
+            my = (y1 + y2) // 2 - minY
+            putTextWithCircle(str(pieceId), (gap + mx, gap + my), image, (255, 255, 255), (100, 0, 0))
+
+    showImage('component', image)
+
+def previewSlot(slotId, pieceId, edgeId):
+    componentId, x, y = ComponentManager.getSlotPos(slotId)
+    component = ComponentManager.get(componentId)
+    newComponent = Component(pieceId, edgeId)
+    print(x, y)
+    for i in range(-1, 2):
+        for j in range(-1, 2):
+            if i == 0 and j == 0:
+                continue
+            if not (x + i, y + j) in component.pieces:
+                continue
+            nowPiece, nowEdge = component.pieces[(x + i, y + j)]
+            newComponent.setPiece(nowPiece, nowEdge, i, j)
+    showComponent2(newComponent)

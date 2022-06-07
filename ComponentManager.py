@@ -55,13 +55,45 @@ class _ComponentManager:
             self.pieces[pieceId] = [self.newComponent(pieceId), 0, 0, 0]
         return self.pieces[pieceId]
 
-    def setPiece(self, slot, pieceId, bottomLeft):
-        componentId, x, y = self.slots[slot]
+    def setPiecePos(self, componentId, x, y, pieceId, bottomLeft):
         component = self.get(componentId)
+        print('owo', x, y)
         component.setPiece(pieceId, bottomLeft, x, y)
         while len(self.pieces) <= pieceId:
             self.pieces.append(-1)
         self.pieces[pieceId] = [componentId, x, y, bottomLeft]
 
+    def setPiece(self, slot, pieceId, edgeId):
+        componentId, x, y = self.slots[slot]
+        pieceComponentId, px, py, bottomLeft = self.findPiece(pieceId)
+        self.connectComponent(componentId, pieceComponentId, x, y, px, py, (edgeId - bottomLeft + 4) % 4)
+
+    def connectComponent(self, componentId1, componentId2, ox, oy, tx, ty, ori):
+        assert(componentId1 != componentId2)
+        if ori == 0:
+            trans = [[1, 0], [0, 1]]
+        elif ori == 1:
+            trans = [[0, 1], [-1, 0]]
+        elif ori == 2:
+            trans = [[-1, 0], [0, -1]]
+        else:
+            trans = [[0, -1], [1, 0]]
+
+        todo = []
+        component1 = self.get(componentId1)
+        component2 = self.get(componentId2)
+        for x, y in component2.pieces:
+            pieceId, edgeId = component2.pieces[(x, y)]
+            x = x - tx
+            y = y - ty
+            tx = trans[0][0] * x + trans[0][1] * y + ox
+            ty = trans[1][0] * x + trans[1][1] * y + oy
+            if (ox, oy) in component1.pieces:
+                return False
+            todo.append([tx, ty, pieceId, (edgeId + ori) % 4])
+        for i in todo:
+            self.setPiecePos(componentId1, i[0], i[1], i[2], i[3])
+        self.components[componentId2] = None
+        return True
 
 ComponentManager = _ComponentManager()

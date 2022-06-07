@@ -4,21 +4,21 @@ import numpy as np
 
 class Component:
 
-    def __init__(self, pieceId) -> None:
+    def __init__(self, pieceId, edgeId=0) -> None:
         self.pieces = dict()
-        self.pieces[(0, 0)] = [pieceId, 0]
+        self.pieces[(0, 0)] = [pieceId, edgeId]
         piece = PieceManager.get(pieceId)
 
-        o1 = piece.corners[0]
-        o2 = piece.corners[1]
+        o1 = piece.corners[edgeId]
+        o2 = piece.corners[(edgeId + 1) % 4]
         t1 = np.array([0, 0])
         t2 = np.array([100, 0])
 
         self.corners = dict()
-        self.corners[(0, 0)] = transformPoint(piece.corners[0], o1, t1, o2, t2)
-        self.corners[(1, 0)] = transformPoint(piece.corners[1], o1, t1, o2, t2)
-        self.corners[(1, 1)] = transformPoint(piece.corners[2], o1, t1, o2, t2)
-        self.corners[(0, 1)] = transformPoint(piece.corners[3], o1, t1, o2, t2)
+        self.corners[(0, 0)] = transformPoint(piece.corners[edgeId], o1, t1, o2, t2)
+        self.corners[(1, 0)] = transformPoint(piece.corners[(edgeId + 1) % 4], o1, t1, o2, t2)
+        self.corners[(1, 1)] = transformPoint(piece.corners[(edgeId + 2) % 4], o1, t1, o2, t2)
+        self.corners[(0, 1)] = transformPoint(piece.corners[(edgeId + 3) % 4], o1, t1, o2, t2)
 
         self.slots = dict()
 
@@ -29,6 +29,7 @@ class Component:
         dir = [(0, -1), (1, 0), (0, 1), (-1, 0)]
         for i in range(0, 4):
             dx, dy = dir[i]
+            print('oao', x, dx, y, dy)
             if (x + dx, y + dy) in self.pieces:
                 o1 = piece.corners[(bottomLeft + i) % 4]
                 o2 = piece.corners[(bottomLeft + i + 1) % 4]

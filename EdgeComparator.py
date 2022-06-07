@@ -110,6 +110,8 @@ def findClosestPieces(slotId):
     componentId, _, _ = ComponentManager.getSlotPos(slotId)
     all = []
     for pieceId in range(0, PieceManager.size()):
+        if not PieceManager.available(pieceId):
+            continue
         if ComponentManager.findPiece(pieceId)[0] == componentId:
             continue
         for edgeId in range(0, 4):

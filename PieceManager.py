@@ -17,6 +17,9 @@ class _PieceManager:
     def get(self, num) -> Piece:
         assert(not self.disable[num])
         return self.pieces[num]
+    
+    def available(self, num):
+        return not self.disable[num]
 
     def getEdge(self, num, e) -> Edge:
         return self.get(num).edges[e]
