@@ -8,32 +8,13 @@ import math
 from Piece import *
 import EdgeComparator
 from Util import *
+import Config
 
 class _PieceProcessor:
 
     def __init__(self, contour, originImage):
         self.contour = contour
         self.originImage = originImage
-
-    def getNextPointQQ(self, convexHull, id, diff, ori):
-        size = convexHull.shape[0]
-
-        lst = convexHull[id][0]
-        now = 0.0
-        for i in range(1, size + 1):
-            nxt = (id + i * ori + size) % size
-            p = convexHull[nxt][0]
-            # if now + vectorLength(p - lst) < diff:
-            #     now += vectorLength(p - lst)
-            #     lst = p
-            #     continue
-            if vectorLength(p - lst) < diff:
-                continue
-            # lst = interpolate(lst, p, diff - now)
-            lst = p
-            break
-        p1 = lst
-        return p1
 
     def getNextPoint(self, convexHull, id, diff, ori):
         size = convexHull.shape[0]
@@ -53,73 +34,6 @@ class _PieceProcessor:
         p1 = lst
         return p1
 
-    def findCornersQQ(self):
-        convexHull = cv2.convexHull(self.contour)
-        convexHullSet = set()
-        for i in convexHull:
-            convexHullSet.add((i[0][0], i[0][1]))
-        reverseContour = self.contour[::-1]
-        
-        size = reverseContour.shape[0]
-        totalLen = 0.0
-
-        for i in range(0, size):
-            lst = reverseContour[i - 1][0]
-            p = reverseContour[i][0]
-            totalLen += vectorLength(p - lst)
-
-        diff = totalLen * 0.015
-        sep = totalLen * 0.05
-        corners = []
-
-        for i in range(0, size):
-            p = reverseContour[i][0]
-            if not (p[0], p[1]) in convexHullSet:
-                continue
-            p1 = self.getNextPoint(reverseContour, i, diff, -1)
-            p2 = self.getNextPoint(reverseContour, i, diff, 1)
-
-            seg = [p]
-            for j in range(1, size - 1):
-                tp = reverseContour[(i - j + size) % size]
-                seg.append(tp[0])
-                if np.array_equal(tp[0], p1):
-                    break
-            seg = seg[::-1]
-            for j in range(1, size - 1):
-                tp = reverseContour[(i + j) % size]
-                seg.append(tp[0])
-                if np.array_equal(tp[0], p2):
-                    break
-            # print(seg)
-
-            area = polyArea(seg)
-            tri = polyArea([p1, p, p2])
-
-            corners.append([abs(area - tri), i, p, p1, p2])
-
-        self.corners = []
-        finalCorners = []
-        corners = sorted(corners, key=lambda x: x[0])
-
-        for i in corners:
-            flag = True
-            for j in finalCorners:
-                dis = vectorLength(i[2] - j[2])
-                if dis < sep:
-                    flag = False
-                    break
-            if flag:
-                finalCorners.append(i)
-            if len(finalCorners) > 4:
-                finalCorners.pop()
-        
-        for i in finalCorners:
-            self.corners.append(i)
-
-        self.corners = sorted(self.corners, key=lambda x: x[1])
-        return self.corners
-
     def findCorners(self):
         convexHull = cv2.convexHull(self.contour)
         size = convexHull.shape[0]
@@ -130,8 +44,8 @@ class _PieceProcessor:
             p = convexHull[i][0]
             totalLen += vectorLength(p - lst)
 
-        diff = totalLen * 0.015
-        sep = totalLen * 0.18
+        diff = totalLen * Config.cornerSampling
+        sep = totalLen * Config.cornerMinDistance
         corners = []
 
         for i in range(0, size):

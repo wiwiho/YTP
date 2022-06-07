@@ -29,7 +29,6 @@ class Component:
         dir = [(0, -1), (1, 0), (0, 1), (-1, 0)]
         for i in range(0, 4):
             dx, dy = dir[i]
-            print('oao', x, dx, y, dy)
             if (x + dx, y + dy) in self.pieces:
                 o1 = piece.corners[(bottomLeft + i) % 4]
                 o2 = piece.corners[(bottomLeft + i + 1) % 4]

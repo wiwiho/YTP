@@ -39,6 +39,11 @@ class _ComponentManager:
         return component.slots[(x, y)]
     
     def getSlotPos(self, slotId):
+        if slotId >= len(self.slots):
+            return None
+        componentId, x, y = self.slots[slotId]
+        if self.getSlot(componentId, x, y) == -1:
+            return None
         return self.slots[slotId]
         
     def updateSlots(self, componentId):
@@ -57,7 +62,7 @@ class _ComponentManager:
 
     def setPiecePos(self, componentId, x, y, pieceId, bottomLeft):
         component = self.get(componentId)
-        print('owo', x, y)
+        # print('owo', x, y)
         component.setPiece(pieceId, bottomLeft, x, y)
         while len(self.pieces) <= pieceId:
             self.pieces.append(-1)
@@ -66,7 +71,10 @@ class _ComponentManager:
     def setPiece(self, slot, pieceId, edgeId):
         componentId, x, y = self.slots[slot]
         pieceComponentId, px, py, bottomLeft = self.findPiece(pieceId)
-        self.connectComponent(componentId, pieceComponentId, x, y, px, py, (edgeId - bottomLeft + 4) % 4)
+        return self.connectComponent(componentId, pieceComponentId, x, y, px, py, (edgeId - bottomLeft + 4) % 4)
+
+    def slotAvailable(self, slotId):
+        return not self.getSlotPos(slotId) is None
 
     def connectComponent(self, componentId1, componentId2, ox, oy, tx, ty, ori):
         assert(componentId1 != componentId2)
@@ -86,11 +94,11 @@ class _ComponentManager:
             pieceId, edgeId = component2.pieces[(x, y)]
             x = x - tx
             y = y - ty
-            tx = trans[0][0] * x + trans[0][1] * y + ox
-            ty = trans[1][0] * x + trans[1][1] * y + oy
+            nx = trans[0][0] * x + trans[0][1] * y + ox
+            ny = trans[1][0] * x + trans[1][1] * y + oy
             if (ox, oy) in component1.pieces:
                 return False
-            todo.append([tx, ty, pieceId, (edgeId + ori) % 4])
+            todo.append([nx, ny, pieceId, (edgeId + ori) % 4])
         for i in todo:
             self.setPiecePos(componentId1, i[0], i[1], i[2], i[3])
         self.components[componentId2] = None

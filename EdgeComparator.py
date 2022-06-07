@@ -119,6 +119,7 @@ def findClosestPieces(slotId):
                 continue
             all.append([calcSlotScore(slotId, pieceId, edgeId), pieceId, edgeId])
     all = sorted(all, key=lambda x: x[0])
+    # print('findClosestPieces', all)
     return all
 
         

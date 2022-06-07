@@ -77,7 +77,7 @@ def previewConnectEdges(pieceId1, edgeId1, pieceId2, edgeId2):
     pixels += transformPixels(piece2.pixels, o1, t1, o2, t2)
 
     dx, dy, minX, minY = getPixelsSize(pixels)
-    print(dx, dy, minX, minY)
+    # print(dx, dy, minX, minY)
 
     image = np.full((dy, dx, 3), 255, np.uint8)
     for i in pixels:
@@ -111,7 +111,7 @@ def showComponent(componentId, number=False, slot=False):
     if slot:
         slotPoints = []
         for x, y in component.slots:
-            print('slot', x, y)
+            # print('slot', x, y)
             id = ComponentManager.getSlot(componentId, x, y)
             if id == -1:
                 continue
@@ -139,7 +139,7 @@ def showComponent(componentId, number=False, slot=False):
         for x, y in component.pieces:
             pieceId, _ = component.pieces[(x, y)]
             x1, y1, x2, y2 = component.getBox(x, y)
-            print(x1, y1, x2, y2)
+            # print(x1, y1, x2, y2)
             mx = (x1 + x2) // 2 - minX
             my = (y1 + y2) // 2 - minY
             putTextWithCircle(str(pieceId), (gap + mx, gap + my), image, (255, 255, 255), (100, 0, 0))
@@ -199,7 +199,7 @@ def showComponent2(component, number=True, border=True):
         for x, y in component.pieces:
             pieceId, _ = component.pieces[(x, y)]
             x1, y1, x2, y2 = component.getBox(x, y)
-            print(x1, y1, x2, y2)
+            # print(x1, y1, x2, y2)
             mx = (x1 + x2) // 2 - minX
             my = (y1 + y2) // 2 - minY
             putTextWithCircle(str(pieceId), (gap + mx, gap + my), image, (255, 255, 255), (100, 0, 0))
@@ -210,13 +210,11 @@ def previewSlot(slotId, pieceId, edgeId):
     componentId, x, y = ComponentManager.getSlotPos(slotId)
     component = ComponentManager.get(componentId)
     newComponent = Component(pieceId, edgeId)
-    print(x, y)
-    for i in range(-1, 2):
-        for j in range(-1, 2):
-            if i == 0 and j == 0:
-                continue
-            if not (x + i, y + j) in component.pieces:
-                continue
-            nowPiece, nowEdge = component.pieces[(x + i, y + j)]
-            newComponent.setPiece(nowPiece, nowEdge, i, j)
+    # print(x, y)
+    tmp = [(1, 0), (0, 1), (-1, 0), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)]
+    for i, j in tmp:
+        if not (x + i, y + j) in component.pieces:
+            continue
+        nowPiece, nowEdge = component.pieces[(x + i, y + j)]
+        newComponent.setPiece(nowPiece, nowEdge, i, j)
     showComponent2(newComponent)
