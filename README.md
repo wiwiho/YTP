@@ -6,6 +6,8 @@ A puzzle solver.
 
 First, set `tempFilePath` as you want in Config.py.
 
+**WARNING: THE PROGRAM DELETES ALL FILES IN `tempFilePath`!!!!**
+
 Open Python shell and type:
 
 ```
